@@ -2,28 +2,26 @@
   (:require [quil.core :as q]
             [quil.middleware :as m]))
 
-(defn unify-x-y
-  [x y]
-  {:x x :y y})
+(defn unify-x-y-angle
+  [x y angle]
+  {:x x :y y :angle angle})
 
 (defn setup-grid
   []
-  (let [resolution 10;(* (q/width) 0.01)
+  (let [resolution 50;(* (q/width) 0.01)
         left-x -250 ;(* -0.5 (q/width))
         right-x 750 ;(* 1.5 (q/width))
         top-y -250 ;(* -0.5 (q/height))
         bottom-y 750 ;(* 1.5 (q/height))
         num-columns (/ (- right-x left-x) resolution)
         num-rows (/ (- bottom-y top-y) resolution)
-        default-angle 46 ;q/QUARTER-PI
+        default-angle q/PI
         x (into [](range left-x right-x resolution)) ; vector apparently more efficient for lookup using get, and lists equivalent is (nth)
         y (into [] (range top-y bottom-y resolution)) ;vector doesn't matter here possibly, but may be more efficient
         xx (apply concat  (for [i (range (count x))] (repeat (count y) (get x i))))
-        yy (apply concat (repeat (count x) y))]
-
-    (map unify-x-y xx yy)
-    
-))
+        yy (apply concat (repeat (count x) y))
+        angle-vec (repeat (count xx) default-angle)]
+    (map unify-x-y-angle xx yy angle-vec)))
 
 (defn get-grid-data
   "get grid 'value' at x y for key k"
@@ -39,7 +37,10 @@
               x (:x elem)
               y (:y elem)
               angle (:angle elem)]
-          (q/ellipse x y 5 5))))))
+          (q/ellipse x y 3 3)
+          (q/line x y (+ x (* 10 (q/cos angle))) (+ y (* 10 (q/sin angle))))
+         ; (q/line x y (* 10 (q/cos angle)) (* 10 (q/sin angle)))
+          )))))
 
 (defn print-state
   [state]
