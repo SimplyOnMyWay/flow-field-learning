@@ -8,11 +8,11 @@
 
 (defn setup-grid
   []
-  (let [resolution 50;(* (q/width) 0.01)
-        left-x -250 ;(* -0.5 (q/width))
-        right-x 750 ;(* 1.5 (q/width))
-        top-y -250 ;(* -0.5 (q/height))
-        bottom-y 750 ;(* 1.5 (q/height))
+  (let [resolution (* (q/width) 0.07)
+        left-x (* -0.5 (q/width))
+        right-x (* 1.5 (q/width))
+        top-y (* -0.5 (q/height))
+        bottom-y (* 1.5 (q/height))
         num-columns (/ (- right-x left-x) resolution)
         num-rows (/ (- bottom-y top-y) resolution)
         default-angle q/PI
@@ -30,31 +30,32 @@
 
 (defn draw-grid-angle
   [grid]
-  (q/with-fill nil
-    (q/with-stroke [110 90 50 0.9]
-      (doseq [elem-no (range (count grid))]
-        (let [elem (nth grid elem-no)
-              x (:x elem)
-              y (:y elem)
-              angle (:angle elem)]
-          (q/ellipse x y 3 3)
-          (q/line x y (+ x (* 10 (q/cos angle))) (+ y (* 10 (q/sin angle))))
-         ; (q/line x y (* 10 (q/cos angle)) (* 10 (q/sin angle)))
-          )))))
-
-(defn print-state
-  [state]
-  (println state))
+  (let [line-length 20]
+    (q/with-fill nil
+      (q/with-stroke [110 90 50 0.9]
+        (doseq [elem-no (range (count grid))]
+          (let [elem (nth grid elem-no)
+                x (:x elem)
+                y (:y elem)
+                angle (:angle elem)]
+            (q/ellipse x y 3 3)
+            (q/line x y (+ x (* line-length (q/cos angle))) (+ y (* line-length (q/sin angle))))))))))
 
 (defn setup []
-  (q/frame-rate 0.5)
+  (q/frame-rate 30)
   (q/color-mode :hsb 360 100 100 1.0)
   (setup-grid))
 
+(defn update-grid-point
+  "leave :x and :y as they are, and adjust :angle"
+  [grid-point]
+  (let [angle-inc 0.157] 
+    {:x (:x grid-point)
+     :y (:y grid-point)
+     :angle (+ angle-inc (* (:x grid-point) 0) (/ (:y grid-point) 1000) (:angle grid-point))}))
+
 (defn update-state [state]
-  {:x (:x state)
-   :y (:y state)
-   :angle (:angle state)})
+  (map update-grid-point state))
 
 (defn draw-state [state]
   (q/background 50 80 80 0.7)
@@ -64,9 +65,9 @@
 
 (q/defsketch flow-test
   :title "flow-test!"
-  :size [500 500]
+  :size [900 700]
   :setup setup
-  ;:update update-state
+  :update update-state
   :draw draw-state
   :features [:keep-on-top]
   :middleware [m/fun-mode])
