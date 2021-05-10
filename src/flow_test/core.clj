@@ -89,47 +89,30 @@
   [y]
   (- y (:left-y (screen-offsets))))
 
+(defn find-grid-angle
+  "return angle within distance 'resolution' of x and y"
+  [x y grid res]
+  (:angle (first (filter #(and (<= (q/abs (- (:x %) x)) res) (<= (q/abs (- (:y %) y)) res)) grid))))
+
 (defn draw-curve-recursive
   "use recur to implement curve"
   [grid x-start y-start num-steps step-length]
-  (let [resolution (* (q/width) res-factor)
-        p1 {:x x-start :y y-start}
-        n num-steps
-        ;grid-angle q/QUARTER-PI
-        grid-angle (:angle (first (filter #(and (<= (q/abs (- (:x %) (:x p1))) resolution) (<= (q/abs (- (:y %) (:y p1))) resolution)) grid)))
-        x-step (* step-length (q/cos grid-angle))
-        y-step (* step-length (q/sin grid-angle))
-        p2 {:x (+ (:x p1) x-step) :y (+ (:y p1) y-step)}]
-    (q/with-stroke [0 100 100 1.0]
-      (q/stroke-weight 3)
-      (q/line (:x p1) (:y p1) (:x p2) (:y p2)))))
-
-
-(comment
-  (def g (setup-grid))
-  (map update-grid-point g)
-  (defn check-angle
-    []
-    (let [resolution (* 900 res-factor)
-          p1 {:x 200 :y 400}]
-      (:angle (first (filter #(and (<= (q/abs (- (:x %) (:x p1))) resolution) (<= (q/abs (- (:y %) (:y p1))) resolution)) g))))))
-
-
-
-(comment
-  (defn draw-curve
-    "draw curve through point at angle a for a distance d"
-    [x-start y-start]
-    (q/begin-shape)
-    (doseq [n (range num-steps)]
-      (let [x-offset ()])
-      (q/curve-vertex x-start y-start)
-      
-      (q/curve-vertex x-start y-start)
-      (q/curve-vertex 100 80)
-      (q/curve-vertex 100 80))
-    (q/end-shape)))
-
+  (let [resolution (* (q/width) res-factor)]
+    (loop [x1 x-start
+           y1 y-start
+           step-num 0]
+      (let [grid-angle (find-grid-angle x1 y1 grid resolution)
+            x-step (* step-length (q/cos grid-angle))
+            y-step (* step-length (q/sin grid-angle))
+            x2 (+ x1 x-step)
+            y2 (+ y1 y-step)]
+        (when (< step-num num-steps)
+          (q/with-stroke [0 100 100 1.0]
+            (q/stroke-weight 3)
+            (q/line x1 y1 x2 y2))
+          (recur x2
+                 y2
+                 (inc step-num)))))))
 
 (defn draw-state [state]
   ;(q/no-loop)
@@ -137,7 +120,7 @@
   (q/with-fill nil
     (q/with-stroke [200 0 100 1.0]
       (draw-grid-angle state)
-      (draw-curve-recursive state 800 600 num-steps-global step-length-global))))
+      (draw-curve-recursive state 300 510 2 step-length-global))))
 
 (q/defsketch flow-test
   :title "flow-test!"
