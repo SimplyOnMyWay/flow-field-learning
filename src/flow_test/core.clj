@@ -2,7 +2,7 @@
   (:require [quil.core :as q]
             [quil.middleware :as m]))
 
-(def res-factor 0.025)
+(def res-factor 0.01)
 (def num-steps-global 50)
 (def step-length-global 20)
 
@@ -115,12 +115,12 @@
                  (inc step-num)))))))
 
 (defn draw-state [state]
-  ;(q/no-loop)
+  (q/no-loop)
   (q/background 50 80 80 0.7)
   (q/with-fill nil
     (q/with-stroke [200 0 100 1.0]
-      (draw-grid-angle state)
-      (draw-curve-recursive state 300 510 2 step-length-global))))
+      ;(draw-grid-angle state)
+      (draw-curve-recursive state 100 100 num-steps-global step-length-global))))
 
 (q/defsketch flow-test
   :title "flow-test!"
