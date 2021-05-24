@@ -2,9 +2,9 @@
   (:require [quil.core :as q]
             [quil.middleware :as m]))
 
-(def res-factor 0.01)
-(def num-steps-global 50)
-(def step-length-global 20)
+(def res-factor 0.05)
+(def num-steps-global 10)
+(def step-length-global 10)
 
 (defn screen-offsets
   "set left-x, right-x, top-y and bottom-y"
@@ -102,11 +102,19 @@
            y1 y-start
            step-num 0]
       (let [grid-angle (find-grid-angle x1 y1 grid resolution)
-            x-step (* step-length (q/cos grid-angle))
+            x-step (* step-length (q/tan grid-angle))
             y-step (* step-length (q/sin grid-angle))
             x2 (+ x1 x-step)
             y2 (+ y1 y-step)]
-        (when (< step-num num-steps)
+        (when (and
+               ;combined with step-length-global, defines the overall length of curves
+               (< step-num num-steps)
+               ;next 4 lines keeps curves with boundaries
+               (> x2 (:left-x (screen-offsets)))
+               (< x2 (:right-x (screen-offsets)))
+               (> y2 (:top-y (screen-offsets)))
+               (< y2 (:bottom-y (screen-offsets)))
+               true)
           (q/with-stroke [0 100 100 1.0]
             (q/stroke-weight 3)
             (q/line x1 y1 x2 y2))
@@ -119,12 +127,15 @@
   (q/background 50 80 80 0.7)
   (q/with-fill nil
     (q/with-stroke [200 0 100 1.0]
-      ;(draw-grid-angle state)
-      (draw-curve-recursive state 100 100 num-steps-global step-length-global))))
+      (let [resolution (* (q/width) res-factor)]
+                                        ;(draw-grid-angle state)
+        (doseq [x (range (:left-x (screen-offsets)) (:right-x (screen-offsets)) (* resolution 0.9))
+                y (range (:top-y (screen-offsets)) (:bottom-y (screen-offsets)) (* resolution 0.9))]
+             (draw-curve-recursive state x y num-steps-global step-length-global))))))
 
 (q/defsketch flow-test
   :title "flow-test!"
-  :size [900 700]
+  :size [600 700]
   :setup setup
   ;:update update-state
   :draw draw-state
